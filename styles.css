@@ -1,0 +1,49 @@
+body {
+  font-family: sans-serif;
+  background: white;
+  color: purple;
+  margin: 0;
+  padding: 0;
+}
+
+header {
+  background: purple;
+  color: white;
+  text-align: center;
+  padding: 1em;
+}
+
+nav {
+  display: flex;
+  flex-wrap: wrap;
+  background: #eee;
+  padding: 0.5em;
+}
+
+nav button {
+  flex: 1;
+  padding: 0.5em;
+  background: purple;
+  color: white;
+  border: none;
+  margin: 0.25em;
+  cursor: pointer;
+}
+
+section {
+  display: none;
+  padding: 1em;
+}
+
+section.active {
+  display: block;
+}
+
+input {
+  padding: 0.5em;
+  margin-top: 0.5em;
+}
+
+button {
+  margin-top: 0.5em;
+}
