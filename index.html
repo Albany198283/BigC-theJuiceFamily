@@ -1,156 +1,51 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Big C & the Juice Family</title>
-
-  <!-- Theme + styles -->
-  <meta name="theme-color" content="#8A2BE2" />
   <link rel="stylesheet" href="styles.css" />
-
-  <!-- PWA manifest -->
   <link rel="manifest" href="manifest.webmanifest" />
-
-  <!-- iOS Home Screen Icons (important for iPhone icon) -->
-  <link rel="apple-touch-icon" href="icons/icon-192.png">
-  <link rel="apple-touch-icon" sizes="192x192" href="iconsicon-192.png">
-  <link rel="apple-touch-icon" sizes="512x512" href="iconsicon-512.png">
 </head>
 <body>
-  <div id="app" class="app hidden">
-    <header class="app-header">
-      <h1>Big C & the Juice Family</h1>
-    </header>
+  <header>
+    <h1>Big C & the Juice Family</h1>
+  </header>
 
-    <main class="view">
-      <!-- Home -->
-      <section id="view-home" class="screen active">
-        <h2>Today</h2>
-        <div id="home-upcoming" class="card"></div>
-        <div class="quick-actions">
-          <button data-open="calendar" class="btn">Add Birthday/Trip</button>
-          <button data-open="lists" class="btn">Add List Item</button>
-          <button data-open="watch" class="btn">Add Film/Series</button>
-          <button data-open="goals" class="btn">Add Goal</button>
-        </div>
-      </section>
-
-      <!-- Calendar -->
-      <section id="view-calendar" class="screen">
-        <h2>Calendar</h2>
-        <div class="stack">
-          <div class="card">
-            <h3>Birthdays</h3>
-            <form id="form-birthday" class="row">
-              <input id="b-name" placeholder="Name" required />
-              <input id="b-date" type="date" required />
-              <button class="btn" type="submit">Add</button>
-            </form>
-            <ul id="list-birthdays" class="list"></ul>
-          </div>
-          <div class="card">
-            <h3>Trips</h3>
-            <form id="form-trip" class="row">
-              <input id="t-title" placeholder="Trip title" required />
-              <input id="t-start" type="date" required />
-              <input id="t-end" type="date" required />
-              <input id="t-location" placeholder="Location" />
-              <button class="btn" type="submit">Add</button>
-            </form>
-            <ul id="list-trips" class="list"></ul>
-          </div>
-        </div>
-      </section>
-
-      <!-- Lists -->
-      <section id="view-lists" class="screen">
-        <h2>Lists</h2>
-        <div class="stack">
-          <div class="card">
-            <h3>Shopping</h3>
-            <form id="form-shop" class="row">
-              <input id="s-title" placeholder="Add item" required />
-              <input id="s-qty" type="number" min="1" value="1" />
-              <button class="btn" type="submit">Add</button>
-            </form>
-            <ul id="list-shopping" class="list"></ul>
-          </div>
-          <div class="card">
-            <h3>Family Admin</h3>
-            <form id="form-admin" class="row">
-              <input id="a-title" placeholder="New task" required />
-              <input id="a-due" type="date" />
-              <button class="btn" type="submit">Add</button>
-            </form>
-            <ul id="list-admin" class="list"></ul>
-          </div>
-        </div>
-      </section>
-
-      <!-- Contacts -->
-      <section id="view-contacts" class="screen">
-        <h2>Important Contacts</h2>
-        <form id="form-contact" class="row">
-          <input id="c-name" placeholder="Name" required />
-          <input id="c-phone" placeholder="Phone" />
-          <input id="c-address" placeholder="Address" />
-          <button class="btn" type="submit">Save</button>
-        </form>
-        <ul id="list-contacts" class="list"></ul>
-      </section>
-
-      <!-- Watchlist -->
-      <section id="view-watch" class="screen">
-        <h2>Watchlist</h2>
-        <form id="form-media" class="row">
-          <select id="m-kind">
-            <option value="film">Film</option>
-            <option value="series">Series</option>
-          </select>
-          <input id="m-title" placeholder="Title" required />
-          <input id="m-where" placeholder="Where to watch" />
-          <button class="btn" type="submit">Add</button>
-        </form>
-        <ul id="list-media" class="list"></ul>
-      </section>
-
-      <!-- Goals -->
-      <section id="view-goals" class="screen">
-        <h2>Goals</h2>
-        <form id="form-goal" class="row">
-          <input id="g-title" placeholder="New goal" required />
-          <input id="g-target" type="date" />
-          <button class="btn" type="submit">Add</button>
-        </form>
-        <ul id="list-goals" class="list"></ul>
-      </section>
-    </main>
-
-    <!-- Tab bar: buttons must have .tab and data-open to match app.js -->
-    <nav class="tabbar">
-      <button class="tab active" data-open="home">Home</button>
-      <button class="tab" data-open="calendar">Calendar</button>
-      <button class="tab" data-open="lists">Lists</button>
-      <button class="tab" data-open="watch">Watch</button>
-      <button class="tab" data-open="goals">Goals</button>
-      <button class="tab" data-open="contacts">Contacts</button>
+  <main>
+    <nav>
+      <button onclick="showSection('calendar')">Calendar</button>
+      <button onclick="showSection('shopping')">Shopping List</button>
+      <button onclick="showSection('admin')">Family Admin</button>
+      <button onclick="showSection('contacts')">Contacts</button>
+      <button onclick="showSection('watchlist')">Watchlist</button>
+      <button onclick="showSection('goals')">Goals</button>
     </nav>
-  </div>
 
-  <!-- Simple passcode lock (shown until unlocked by app.js) -->
-  <div id="lock" class="lock">
-    <div class="lock-card">
-      <h2>Enter Passcode</h2>
-      <input id="pin" inputmode="numeric" maxlength="8" placeholder="••••" />
-      <div class="row">
-        <button id="unlock" class="btn">Unlock</button>
-        <button id="setpin" class="btn btn-ghost">Set/Change Passcode</button>
-      </div>
-    </div>
-  </div>
+    <section id="calendar" class="active">
+      <h2>Calendar</h2>
+      <ul id="calendar-list"></ul>
+      <input placeholder="Add event..." id="calendar-input" />
+      <button onclick="addItem('calendar')">Add</button>
+    </section>
 
-  <!-- Load JS AFTER HTML so buttons work -->
-  <script src="app.js" defer></script>
-</body>
-</html>
+    <section id="shopping">
+      <h2>Shopping List</h2>
+      <ul id="shopping-list"></ul>
+      <input placeholder="Add item..." id="shopping-input" />
+      <button onclick="addItem('shopping')">Add</button>
+    </section>
+
+    <section id="admin">
+      <h2>Family Admin</h2>
+      <ul id="admin-list"></ul>
+      <input placeholder="Add task..." id="admin-input" />
+      <button onclick="addItem('admin')">Add</button>
+    </section>
+
+    <section id="contacts">
+      <h2>Contacts</h2>
+      <ul id="contacts-list"></ul>
+      <input placeholder="Add contact..." id="contacts-input" />
+      <button onclick="addItem('contacts')">Add</button>
+    </section>
