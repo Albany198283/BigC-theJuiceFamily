@@ -12,13 +12,12 @@
   <!-- PWA manifest -->
   <link rel="manifest" href="manifest.webmanifest" />
 
-  <!-- iOS Home Screen Icons (important for iPhone icon) -->
+  <!-- iOS Home Screen Icons -->
   <link rel="apple-touch-icon" href="icons/icon-192.png" />
   <link rel="apple-touch-icon" sizes="192x192" href="icons/icon-192.png" />
   <link rel="apple-touch-icon" sizes="512x512" href="icons/icon-512.png" />
 </head>
 <body>
-  <!-- Main app container -->
   <div id="app" class="app">
     <header class="app-header">
       <h1>Big C &amp; the Juice Family</h1>
@@ -32,14 +31,9 @@
         </div>
         <button id="family-photo-btn" class="btn">Set Family Photo</button>
         <input type="file" id="family-photo-input" accept="image/*" hidden />
+
         <h2>Today</h2>
         <div id="home-upcoming" class="card"></div>
-        <div class="quick-actions">
-          <button data-open="calendar" class="btn">Add Birthday/Trip</button>
-          <button data-open="lists" class="btn">Add List Item</button>
-          <button data-open="watch" class="btn">Add Film/Series</button>
-          <button data-open="goals" class="btn">Add Goal</button>
-        </div>
       </section>
 
       <!-- Calendar -->
@@ -133,7 +127,7 @@
       </section>
     </main>
 
-    <!-- Tab bar -->
+    <!-- Purple tab bar -->
     <nav class="tabbar">
       <button class="tab active" data-open="home">Home</button>
       <button class="tab" data-open="calendar">Calendar</button>
@@ -144,7 +138,6 @@
     </nav>
   </div>
 
-  <!-- Load JS AFTER HTML so buttons work -->
   <script src="app.js" defer></script>
 </body>
 </html>
