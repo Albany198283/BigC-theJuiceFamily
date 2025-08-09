@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Big C & the Juice Family</title>
+  <link rel="stylesheet" href="styles.css" />
+  <link rel="manifest" href="manifest.webmanifest" />
+</head>
+<body>
+  <header>
+    <h1>Big C & the Juice Family</h1>
+  </header>
+
+  <main>
+    <nav>
+      <button onclick="showSection('calendar')">Calendar</button>
+      <button onclick="showSection('shopping')">Shopping List</button>
+      <button onclick="showSection('admin')">Family Admin</button>
+      <button onclick="showSection('contacts')">Contacts</button>
+      <button onclick="showSection('watchlist')">Watchlist</button>
+      <button onclick="showSection('goals')">Goals</button>
+    </nav>
+
+    <section id="calendar" class="active">
+      <h2>Calendar</h2>
+      <ul id="calendar-list"></ul>
+      <input placeholder="Add event..." id="calendar-input" />
+      <button onclick="addItem('calendar')">Add</button>
+    </section>
+
+    <section id="shopping">
+      <h2>Shopping List</h2>
+      <ul id="shopping-list"></ul>
+      <input placeholder="Add item..." id="shopping-input" />
+      <button onclick="addItem('shopping')">Add</button>
+    </section>
+
+    <section id="admin">
+      <h2>Family Admin</h2>
+      <ul id="admin-list"></ul>
+      <input placeholder="Add task..." id="admin-input" />
+      <button onclick="addItem('admin')">Add</button>
+    </section>
+
+    <section id="contacts">
+      <h2>Contacts</h2>
+      <ul id="contacts-list"></ul>
+      <input placeholder="Add contact..." id="contacts-input" />
+      <button onclick="addItem('contacts')">Add</button>
+    </section>
