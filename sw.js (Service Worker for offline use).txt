@@ -1,17 +1,29 @@
 self.addEventListener('install', (e) => {
   e.waitUntil(
-    caches.open('bcj-v1').then(cache =>
-      cache.addAll(['./', 'index.html', 'styles.css', 'app.js', 'manifest.webmanifest'])
+    caches.open('bcj-v4').then(cache =>
+      cache.addAll([
+        './',
+        'index.html',
+        'styles.css',
+        'app.js',
+        'manifest.webmanifest',
+        'iconsicon-192.png',
+        'iconsicon-512.png'
+      ])
     )
   );
 });
+
 self.addEventListener('activate', (e) => {
   e.waitUntil(
     caches.keys().then(keys =>
-      Promise.all(keys.filter(k => k !== 'bcj-v1').map(k => caches.delete(k)))
+      Promise.all(keys.filter(k => k !== 'bcj-v4').map(k => caches.delete(k)))
     )
   );
 });
+
 self.addEventListener('fetch', (e) => {
-  e.respondWith(caches.match(e.request).then(resp => resp || fetch(e.request)));
+  e.respondWith(
+    caches.match(e.request).then(resp => resp || fetch(e.request))
+  );
 });
