@@ -39,6 +39,23 @@
       <!-- Calendar -->
       <section id="view-calendar" class="screen">
         <h2>Calendar</h2>
+        <div class="card">
+          <!-- navigation -->
+          <div class="calendar-nav">
+            <button id="cal-prev" class="btn btn-ghost">←</button>
+            <span id="cal-month-label">Month Year</span>
+            <button id="cal-next" class="btn btn-ghost">→</button>
+          </div>
+          <!-- day headings -->
+          <div class="calendar-header">
+            <div>Sun</div><div>Mon</div><div>Tue</div><div>Wed</div><div>Thu</div><div>Fri</div><div>Sat</div>
+          </div>
+          <!-- grid -->
+          <div id="calendar-grid" class="calendar-grid"></div>
+          <!-- details -->
+          <div id="cal-details" class="calendar-details"></div>
+        </div>
+
         <div class="stack">
           <div class="card">
             <h3>Birthdays</h3>
