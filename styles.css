@@ -1,54 +1,64 @@
-/* Base */
+/* Reset & base */
 body {
   font-family: sans-serif;
+  background: white;
+  color: #333;
   margin: 0;
   padding: 0;
-  background: #fff;
-  color: #333;
 }
+
+/* Header */
 .app-header {
   background: #8A2BE2;
   color: white;
   text-align: center;
   padding: 1em;
 }
+
+/* Tab bar */
 nav.tabbar {
   display: grid;
   grid-template-columns: repeat(6, 1fr);
   gap: 4px;
-  padding: 6px;
   background: #f7f7f7;
   border-top: 1px solid #eee;
+  padding: 12px;      /* larger padding */
+  height: 70px;       /* taller bar for better tapping */
   position: fixed;
   bottom: 0;
   left: 0;
   right: 0;
 }
 nav.tabbar .tab {
-  padding: 10px 6px;
-  border: 0;
+  padding: 14px 12px; /* bigger tap area */
+  font-size: 16px;    /* larger text */
+  border: none;
+  border-radius: 12px;
   background: #fff;
   color: #8A2BE2;
-  border-radius: 12px;
 }
 nav.tabbar .tab.active {
   background: #8A2BE2;
   color: white;
 }
+
+/* Main content area */
 main.view {
   padding: 16px;
-  padding-bottom: 90px;
+  padding-bottom: 110px; /* leave space for taller nav bar */
 }
-.screen { display: none; }
-.screen.active { display: block; }
 
-/* Card & lists */
-.stack { display: grid; gap: 12px; }
+/* Card & list styling */
+.stack {
+  display: grid;
+  gap: 12px;
+}
 .card {
   background: #fff;
   border: 1px solid #eee;
   border-radius: 16px;
   padding: 12px;
+  margin-bottom: 14px;
   box-shadow: 0 4px 10px rgba(0,0,0,0.04);
 }
 .row {
@@ -57,16 +67,39 @@ main.view {
   gap: 8px;
   margin: 8px 0;
 }
-.btn { background: #8A2BE2; color: white; border: none; border-radius: 12px; padding: 10px 14px; cursor: pointer; }
-.btn.btn-ghost { background: #E6D6FF; color: #8A2BE2; }
-.list { list-style: none; padding: 0; margin: 8px 0; }
-.list li { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px dashed #eee; }
-.list .meta { font-size: 12px; color: #666; }
+.btn {
+  background: #8A2BE2;
+  color: white;
+  border: none;
+  border-radius: 12px;
+  padding: 10px 14px;
+  cursor: pointer;
+}
+.btn.btn-ghost {
+  background: #E6D6FF;
+  color: #8A2BE2;
+}
+.list {
+  list-style: none;
+  padding: 0;
+  margin: 8px 0 0;
+}
+.list li {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 0;
+  border-bottom: 1px dashed #eee;
+}
+.list .meta {
+  font-size: 12px;
+  color: #666;
+}
 
-/* Photo grid */
+/* Photo grid for multiple family photos */
 .photo-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(100px,1fr));
+  grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
   gap: 8px;
 }
 .photo-grid img {
@@ -76,7 +109,7 @@ main.view {
   border-radius: 8px;
 }
 
-/* Progress bar for admin tasks */
+/* Progress bar (used by goals and family admin tasks) */
 .progress-bar {
   width: 100%;
   height: 10px;
@@ -90,13 +123,13 @@ main.view {
   background: #8A2BE2;
 }
 
-/* Star rating */
+/* Star ratings (watchlist) */
 .stars {
   color: #F5A623;
   display: inline-block;
 }
 
-/* Calendar */
+/* Calendar nav and grid */
 .calendar-nav {
   display: flex;
   justify-content: space-between;
@@ -109,20 +142,20 @@ main.view {
   gap: 4px;
 }
 .calendar-grid .day {
+  position: relative;
   border: 1px solid #eee;
   border-radius: 4px;
   padding: 8px;
   min-height: 50px;
   cursor: pointer;
 }
-.calendar-grid .day.other-month { color: #bbb; }
-.calendar-grid .day.event { background: #F3E8FF; }
-.calendar-grid .day:hover { background: #EEE0FF; }
-.calendar-details { margin-top: 8px; font-size: 14px; }
-.calendar-details h4 { margin: 0 0 4px; color: #8A2BE2; }
-.calendar-details ul { padding-left: 18px; margin: 0; }
-.calendar-details li { margin-bottom: 4px; }
-/* Show a small purple dot when a day has an event */
+.calendar-grid .day.other-month {
+  color: #bbb;
+}
+.calendar-grid .day.event {
+  background: #F3E8FF;
+}
+/* Event indicator: small dot in bottom-right for days with events */
 .calendar-grid .day.event::after {
   content: "•";
   position: absolute;
@@ -131,5 +164,21 @@ main.view {
   font-size: 16px;
   color: #8A2BE2;
 }
-
-
+.calendar-grid .day:hover {
+  background: #EEE0FF;
+}
+.calendar-details {
+  margin-top: 8px;
+  font-size: 14px;
+}
+.calendar-details h4 {
+  margin: 0 0 4px;
+  color: #8A2BE2;
+}
+.calendar-details ul {
+  padding-left: 18px;
+  margin: 0;
+}
+.calendar-details li {
+  margin-bottom: 4px;
+}
