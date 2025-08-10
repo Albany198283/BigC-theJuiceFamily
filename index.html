@@ -9,10 +9,8 @@
   <meta name="theme-color" content="#8A2BE2" />
   <link rel="stylesheet" href="styles.css" />
 
-  <!-- PWA manifest -->
+  <!-- Manifest -->
   <link rel="manifest" href="manifest.webmanifest" />
-
-  <!-- iOS Home Screen Icons -->
   <link rel="apple-touch-icon" href="icons/icon-192.png" />
   <link rel="apple-touch-icon" sizes="192x192" href="icons/icon-192.png" />
   <link rel="apple-touch-icon" sizes="512x512" href="icons/icon-512.png" />
@@ -26,12 +24,9 @@
     <main class="view">
       <!-- Home -->
       <section id="view-home" class="screen active">
-        <div id="family-photo-container" class="family-photo">
-          <img id="family-pic" alt="Family Picture" />
-        </div>
-        <button id="family-photo-btn" class="btn">Set Family Photo</button>
+        <div id="family-photo-grid" class="photo-grid"></div>
+        <button id="family-photo-btn" class="btn">Add Family Photo</button>
         <input type="file" id="family-photo-input" accept="image/*" hidden />
-
         <h2>Today</h2>
         <div id="home-upcoming" class="card"></div>
       </section>
@@ -51,7 +46,6 @@
           <div id="calendar-grid" class="calendar-grid"></div>
           <div id="cal-details" class="calendar-details"></div>
         </div>
-
         <div class="stack">
           <div class="card">
             <h3>Add Birthday</h3>
