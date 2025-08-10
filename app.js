@@ -37,6 +37,108 @@ const state = {
   goals:     S.load(K.goals, [])
 };
 
+// Variables to keep track of current month and year for the calendar view
+let currentMonth = new Date().getMonth();
+let currentYear = new Date().getFullYear();
+
+// Update the calendar month label (e.g., "April 2025")
+function updateCalLabel() {
+  const label = $('#cal-month-label');
+  if (!label) return;
+  const date = new Date(currentYear, currentMonth, 1);
+  const monthName = date.toLocaleString('default', { month: 'long' });
+  label.textContent = `${monthName} ${currentYear}`;
+}
+
+// Render the in-app calendar grid and highlight days with events
+function renderCalendar() {
+  const grid = $('#calendar-grid');
+  if (!grid) return;
+  grid.innerHTML = '';
+  // Determine the first day of the current month and how many days to show from previous/next months
+  const firstDay = new Date(currentYear, currentMonth, 1);
+  const startIndex = (firstDay.getDay() + 6) % 7;
+  const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
+  const daysInPrevMonth = new Date(currentYear, currentMonth, 0).getDate();
+  // Generate 42 cells (6 weeks) to cover all possible days
+  for (let i = 0; i < 42; i++) {
+    const cell = document.createElement('div');
+    cell.classList.add('day');
+    let date;
+    if (i < startIndex) {
+      // Days from previous month
+      const day = daysInPrevMonth - (startIndex - i - 1);
+      date = new Date(currentYear, currentMonth - 1, day);
+      cell.classList.add('other-month');
+    } else if (i >= startIndex + daysInMonth) {
+      // Days from next month
+      const day = i - (startIndex + daysInMonth) + 1;
+      date = new Date(currentYear, currentMonth + 1, day);
+      cell.classList.add('other-month');
+    } else {
+      // Days in current month
+      const day = i - startIndex + 1;
+      date = new Date(currentYear, currentMonth, day);
+    }
+    const iso = date.toISOString().slice(0, 10);
+    cell.dataset.date = iso;
+    cell.textContent = date.getDate();
+    // Highlight cells with birthdays or trips
+    const hasBirthday = state.birthdays.some(b => b.date === iso);
+    const hasTrip = state.trips.some(t => iso >= t.start && iso <= t.end);
+    if (hasBirthday || hasTrip) {
+      cell.classList.add('event');
+    }
+    grid.appendChild(cell);
+  }
+  updateCalLabel();
+}
+
+// Set up navigation for the calendar (previous/next month)
+function setupCalendarNav() {
+  $('#cal-prev')?.addEventListener('click', () => {
+    if (currentMonth === 0) {
+      currentMonth = 11;
+      currentYear--;
+    } else {
+      currentMonth--;
+    }
+    renderCalendar();
+  });
+  $('#cal-next')?.addEventListener('click', () => {
+    if (currentMonth === 11) {
+      currentMonth = 0;
+      currentYear++;
+    } else {
+      currentMonth++;
+    }
+    renderCalendar();
+  });
+}
+
+// Display events for the selected day in the details box
+function setupCalendarClick() {
+  const grid = $('#calendar-grid');
+  if (!grid) return;
+  grid.addEventListener('click', (e) => {
+    const cell = e.target.closest('.day');
+    if (!cell || !cell.dataset.date) return;
+    const iso = cell.dataset.date;
+    const details = $('#cal-details');
+    if (!details) return;
+    const birthdayEvents = state.birthdays.filter(b => b.date === iso);
+    const tripEvents = state.trips.filter(t => iso >= t.start && iso <= t.end);
+    let html = '';
+    if (birthdayEvents.length) {
+      html += '<h4>Birthdays</h4><ul>' + birthdayEvents.map(b => `<li>${b.name}</li>`).join('') + '</ul>';
+    }
+    if (tripEvents.length) {
+      html += '<h4>Trips</h4><ul>' + tripEvents.map(t => `<li>${t.title} (${t.start} → ${t.end})</li>`).join('') + '</ul>';
+    }
+    details.innerHTML = html || '<p>No events</p>';
+  });
+}
+
 // Save all state back to localStorage
 function saveAll() {
   S.save(K.birthdays, state.birthdays);
@@ -48,72 +150,80 @@ function saveAll() {
   S.save(K.goals, state.goals);
 }
 
-/*
- * Renderers for each section. These read from state and write DOM.  Each
- * renderer resets its target element before repopulating. Delete / update
- * buttons are added via event delegation in wireUI().
- */
+// Helper to create a simple iCalendar (.ics) string for birthdays/trips
+function createICSString(title, start, end, details = '', allDay = true) {
+  const dtStart = allDay ? start.replace(/-/g, '') : start.replace(/[-:]/g, '').slice(0, 15);
+  const dtEnd   = allDay ? end.replace(/-/g, '') : end.replace(/[-:]/g, '').slice(0, 15);
+  const lines = [
+    'BEGIN:VCALENDAR',
+    'VERSION:2.0',
+    'BEGIN:VEVENT',
+    `SUMMARY:${title}`,
+    `DESCRIPTION:${details}`,
+    allDay ? `DTSTART;VALUE=DATE:${dtStart}` : `DTSTART:${dtStart}`,
+    allDay ? `DTEND;VALUE=DATE:${dtEnd}`   : `DTEND:${dtEnd}`,
+    'END:VEVENT',
+    'END:VCALENDAR'
+  ];
+  return lines.join('\r\n');
+}
 
-// Birthdays list (with Google Calendar link)
+// Birthdays list (uses .ics download)
 function renderBirthdays() {
   const ul = $('#list-birthdays'); if (!ul) return;
   ul.innerHTML = '';
-  // Sort by date ascending
-  state.birthdays.sort((a, b) => a.date.localeCompare(b.date)).forEach(b => {
+  state.birthdays.sort((a,b) => a.date.localeCompare(b.date)).forEach(b => {
     const li = document.createElement('li');
     const d  = new Date(b.date);
-    // Prepare Google Calendar all‑day event (end date is exclusive)
-    const start = new Date(b.date);
-    const end   = new Date(start); end.setDate(start.getDate() + 1);
-    const fmt   = (date) => date.toISOString().slice(0, 10).replace(/-/g, '');
-    const url   = 'https://calendar.google.com/calendar/render?action=TEMPLATE'
-      + '&text=' + encodeURIComponent(`${b.name} Birthday`)
-      + '&dates=' + fmt(start) + '/' + fmt(end)
-      + '&details=' + encodeURIComponent('Birthday reminder');
+    const startISO = b.date;
+    const endDate  = new Date(startISO);
+    endDate.setDate(endDate.getDate() + 1);
+    const endISO   = endDate.toISOString().slice(0, 10);
+    const ics = createICSString(`${b.name} Birthday`, startISO, endISO, 'Birthday reminder', true);
+    const icsEncoded = encodeURIComponent(ics);
     li.innerHTML = `
       <div>
         <strong>${b.name}</strong>
         <div class="meta">${d.toLocaleDateString()}</div>
       </div>
       <div class="row" style="grid-template-columns:auto auto;gap:6px">
-        <a class="btn btn-ghost" href="${url}" target="_blank" rel="noopener">Google</a>
+        <a class="btn btn-ghost" href="data:text/calendar;charset=utf-8,${icsEncoded}" download="${b.name}_birthday.ics">Calendar</a>
         <button class="btn btn-ghost" data-del="${b.id}" data-type="birthday">Delete</button>
       </div>
     `;
     ul.appendChild(li);
   });
+  if ($('#calendar-grid')) renderCalendar();
 }
 
-// Trips list (with Google Calendar link)
+// Trips list (.ics download for phone calendar)
 function renderTrips() {
   const ul = $('#list-trips'); if (!ul) return;
   ul.innerHTML = '';
-  // Sort by start date
-  state.trips.sort((a, b) => a.start.localeCompare(b.start)).forEach(t => {
+  state.trips.sort((a,b) => a.start.localeCompare(b.start)).forEach(t => {
     const li = document.createElement('li');
-    // Format for Google Calendar
-    const start = new Date(t.start);
-    const end   = new Date(t.end);
-    const fmt   = (date) => date.toISOString().slice(0, 10).replace(/-/g, '');
-    const url   = 'https://calendar.google.com/calendar/render?action=TEMPLATE'
-      + '&text=' + encodeURIComponent(t.title)
-      + '&dates=' + fmt(start) + '/' + fmt(end)
-      + '&details=' + encodeURIComponent(t.location || '');
+    const startISO = t.start;
+    const endDate  = new Date(t.end);
+    endDate.setDate(endDate.getDate() + 1);
+    const endISO   = endDate.toISOString().slice(0, 10);
+    const ics      = createICSString(t.title, startISO, endISO, t.location || '', true);
+    const icsEncoded = encodeURIComponent(ics);
     li.innerHTML = `
       <div>
         <strong>${t.title}</strong>
         <div class="meta">${t.start} → ${t.end}${t.location ? (' • ' + t.location) : ''}</div>
       </div>
       <div class="row" style="grid-template-columns:auto auto;gap:6px">
-        <a class="btn btn-ghost" href="${url}" target="_blank" rel="noopener">Google</a>
+        <a class="btn btn-ghost" href="data:text/calendar;charset=utf-8,${icsEncoded}" download="${t.title}.ics">Calendar</a>
         <button class="btn btn-ghost" data-del="${t.id}" data-type="trip">Delete</button>
       </div>
     `;
     ul.appendChild(li);
   });
+  if ($('#calendar-grid')) renderCalendar();
 }
 
-// Shopping list (with toggle done)
+// Shopping list
 function renderShop() {
   const ul = $('#list-shopping'); if (!ul) return;
   ul.innerHTML = '';
@@ -130,7 +240,7 @@ function renderShop() {
   });
 }
 
-// Admin tasks list (status toggle)
+// Admin tasks list
 function renderAdmin() {
   const ul = $('#list-admin'); if (!ul) return;
   ul.innerHTML = '';
@@ -168,7 +278,7 @@ function renderContacts() {
   });
 }
 
-// Media (watchlist) list with rating and rate button
+// Watchlist with ratings
 function renderMedia() {
   const ul = $('#list-media'); if (!ul) return;
   ul.innerHTML = '';
@@ -189,7 +299,7 @@ function renderMedia() {
   });
 }
 
-// Goals list with progress bar, update button and celebration emoji
+// Goals with progress bars
 function renderGoals() {
   const ul = $('#list-goals'); if (!ul) return;
   ul.innerHTML = '';
@@ -212,14 +322,13 @@ function renderGoals() {
   });
 }
 
-// Home screen: show next three birthdays and trips
+// Home screen: show birthdays today and next trips
 function renderHome() {
   const box = $('#home-upcoming'); if (!box) return;
+  const now = new Date();
   const birthdays = state.birthdays
     .map(b => ({ name: b.name, date: new Date(b.date) }))
-    .filter(b => !isNaN(b.date))
-    .sort((a, b) => a.date - b.date)
-    .slice(0, 3);
+    .filter(b => !isNaN(b.date) && b.date.getMonth() === now.getMonth() && b.date.getDate() === now.getDate());
   const trips = state.trips
     .map(t => ({ title: t.title, start: new Date(t.start) }))
     .filter(t => !isNaN(t.start))
@@ -234,20 +343,17 @@ function renderHome() {
     html += `<h3>🧳 Trips</h3><ul class="list">` +
       trips.map(t => `<li><div>${t.title}</div><div class="meta">${t.start.toLocaleDateString()}</div></li>`).join('') + `</ul>`;
   }
-  if (!html) html = '<p class="meta">No upcoming items yet.</p>';
-  box.innerHTML = html;
+  box.innerHTML = html || '<p class="meta">No upcoming items yet.</p>';
 }
 
 /*
- * UI wiring: attach all event listeners. We use event delegation on lists
- * to handle dynamic items (delete/toggle/update/rate etc). Forms are also
- * wired here. This function is called once on DOMContentLoaded.
+ * UI wiring: attach all event listeners.
  */
 function wireUI() {
   // Tab navigation
   $$('.tab').forEach(btn => btn.addEventListener('click', () => openView(btn.dataset.open)));
 
-  // Birthday form submission
+  // Birthdays
   $('#form-birthday')?.addEventListener('submit', (e) => {
     e.preventDefault();
     const name = $('#b-name').value.trim();
@@ -257,7 +363,7 @@ function wireUI() {
     saveAll(); renderBirthdays(); renderHome(); e.target.reset();
   });
 
-  // Trip form submission
+  // Trips
   $('#form-trip')?.addEventListener('submit', (e) => {
     e.preventDefault();
     const title    = $('#t-title').value.trim();
@@ -269,7 +375,7 @@ function wireUI() {
     saveAll(); renderTrips(); renderHome(); e.target.reset();
   });
 
-  // Shopping form submission
+  // Shopping
   $('#form-shop')?.addEventListener('submit', (e) => {
     e.preventDefault();
     const title = $('#s-title').value.trim();
@@ -279,7 +385,7 @@ function wireUI() {
     saveAll(); renderShop(); e.target.reset();
   });
 
-  // Admin form submission
+  // Admin tasks
   $('#form-admin')?.addEventListener('submit', (e) => {
     e.preventDefault();
     const title = $('#a-title').value.trim();
@@ -289,7 +395,7 @@ function wireUI() {
     saveAll(); renderAdmin(); e.target.reset();
   });
 
-  // Contacts form submission
+  // Contacts
   $('#form-contact')?.addEventListener('submit', (e) => {
     e.preventDefault();
     const name    = $('#c-name').value.trim();
@@ -300,18 +406,18 @@ function wireUI() {
     saveAll(); renderContacts(); e.target.reset();
   });
 
-  // Media form submission (watchlist)
+  // Media / watchlist
   $('#form-media')?.addEventListener('submit', (e) => {
     e.preventDefault();
     const kind  = $('#m-kind').value;
     const title = $('#m-title').value.trim();
     const where = $('#m-where').value.trim();
     if (!title) return;
-    state.media.push({ id: crypto.randomUUID(), kind, title, where, status: 'queued' });
+    state.media.push({ id: crypto.randomUUID(), kind, title, where, status:'queued' });
     saveAll(); renderMedia(); e.target.reset();
   });
 
-  // Goals form submission
+  // Goals
   $('#form-goal')?.addEventListener('submit', (e) => {
     e.preventDefault();
     const title = $('#g-title').value.trim();
@@ -321,19 +427,19 @@ function wireUI() {
     saveAll(); renderGoals(); e.target.reset();
   });
 
-  // Delete / toggle / update handlers for birthdays
+  // Delegated handlers
   $('#list-birthdays')?.addEventListener('click', (e) => {
     const id = e.target.dataset.del; if (!id) return;
-    state.birthdays = state.birthdays.filter(x => x.id !== id); saveAll(); renderBirthdays(); renderHome();
+    state.birthdays = state.birthdays.filter(x => x.id !== id);
+    saveAll(); renderBirthdays(); renderHome();
   });
 
-  // Delete handler for trips
   $('#list-trips')?.addEventListener('click', (e) => {
     const id = e.target.dataset.del; if (!id) return;
-    state.trips = state.trips.filter(x => x.id !== id); saveAll(); renderTrips(); renderHome();
+    state.trips = state.trips.filter(x => x.id !== id);
+    saveAll(); renderTrips(); renderHome();
   });
 
-  // Handlers for shopping list
   $('#list-shopping')?.addEventListener('click', (e) => {
     const tid = e.target.dataset.toggle;
     if (tid) {
@@ -348,7 +454,6 @@ function wireUI() {
     state.shop = state.shop.filter(x => x.id !== id); saveAll(); renderShop();
   });
 
-  // Handlers for admin tasks
   $('#list-admin')?.addEventListener('click', (e) => {
     const sid = e.target.dataset.status;
     if (sid) {
@@ -363,13 +468,11 @@ function wireUI() {
     state.admin = state.admin.filter(x => x.id !== id); saveAll(); renderAdmin();
   });
 
-  // Handlers for contacts
   $('#list-contacts')?.addEventListener('click', (e) => {
     const id = e.target.dataset.del; if (!id) return;
     state.contacts = state.contacts.filter(x => x.id !== id); saveAll(); renderContacts();
   });
 
-  // Handlers for media (watchlist)
   $('#list-media')?.addEventListener('click', (e) => {
     const rateId = e.target.dataset.rate;
     if (rateId) {
@@ -390,7 +493,6 @@ function wireUI() {
     state.media = state.media.filter(x => x.id !== id); saveAll(); renderMedia();
   });
 
-  // Handlers for goals (update progress and delete)
   $('#list-goals')?.addEventListener('click', (e) => {
     const upd = e.target.dataset.update;
     if (upd) {
@@ -411,11 +513,10 @@ function wireUI() {
     state.goals = state.goals.filter(x => x.id !== id); saveAll(); renderGoals(); renderHome();
   });
 
-  // Family photo button: open file picker
+  // Family photo picker
   $('#family-photo-btn')?.addEventListener('click', () => {
     $('#family-photo-input').click();
   });
-  // When user selects a photo, read it and store
   $('#family-photo-input')?.addEventListener('change', (e) => {
     const file = e.target.files[0];
     if (!file) return;
@@ -448,9 +549,9 @@ function openView(id) {
 
 // Start application once DOM is ready
 document.addEventListener('DOMContentLoaded', () => {
-  wireUI();          // Attach all event listeners
-  initFamilyPhoto(); // Load stored family picture if any
-  // Render all lists initially
+  wireUI();          // Attach listeners
+  initFamilyPhoto(); // Show saved photo
+  // Render all lists
   renderBirthdays();
   renderTrips();
   renderShop();
@@ -459,4 +560,9 @@ document.addEventListener('DOMContentLoaded', () => {
   renderMedia();
   renderGoals();
   renderHome();
+  // Setup calendar navigation and click handlers
+  setupCalendarNav();
+  setupCalendarClick();
+  // Render initial calendar
+  renderCalendar();
 });
