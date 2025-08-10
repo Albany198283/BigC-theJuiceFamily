@@ -122,3 +122,14 @@ main.view {
 .calendar-details h4 { margin: 0 0 4px; color: #8A2BE2; }
 .calendar-details ul { padding-left: 18px; margin: 0; }
 .calendar-details li { margin-bottom: 4px; }
+/* Show a small purple dot when a day has an event */
+.calendar-grid .day.event::after {
+  content: "•";
+  position: absolute;
+  bottom: 4px;
+  right: 4px;
+  font-size: 16px;
+  color: #8A2BE2;
+}
+
+
